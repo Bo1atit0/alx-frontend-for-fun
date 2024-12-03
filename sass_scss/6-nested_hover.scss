@@ -12,7 +12,7 @@ $hover-text-color: #00FF00;
 button{
     color: $text-color;
 
-    :hover {
+    &:hover {
         color: $hover-text-color;
     }
 }
