@@ -1,17 +1,10 @@
-/*
-Write a Sass file that assigns:
-
-Text color #FF0000 to button tags
-When the user hovers over button tags, text color should change to #00FF00
-You must use nested declarations
-*/
-
+/* 
+change button color on hover */
 
 button {
-    color: #FF0000; // Text color for button
-  
+    color: #FF0000;
+
     &:hover {
-      color: #00FF00; // Text color when hovering over button
+        color: #00FF00;
     }
-  }
-  
+}
