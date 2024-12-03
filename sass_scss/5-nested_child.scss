@@ -1,0 +1,18 @@
+/*
+Write a Sass file that assigns:
+
+Text color #3D3D3D to elements inside body tags
+Text color #FF0000 to any elements of class .red that are the first children of the body
+You must use nested declarations
+*/
+
+$text-color: #3D3D3D;
+$red-text-color: #FF0000;
+
+body {
+    color: $text-color;
+
+    .red:first-child {
+        color: $red-text-color;
+    }
+}
