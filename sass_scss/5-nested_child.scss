@@ -12,7 +12,11 @@ $red-text-color: #FF0000;
 body {
     color: $text-color;
 
-    .red:first-child {
+    >.red {
         color: $red-text-color;
     }
 }
+
+
+
+
