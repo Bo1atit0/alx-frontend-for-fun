@@ -72,8 +72,6 @@ if __name__ == "__main__":
         with open(html_file, 'w', encoding='utf-8') as html_output:
             html_output.write(html_content)
 
-        # Indicate successful conversion
-        print(f"Converted {markdown_file} to {html_file} successfully.")
 
     except Exception as e:
         # Handle any exceptions that occur during file operations or conversion
