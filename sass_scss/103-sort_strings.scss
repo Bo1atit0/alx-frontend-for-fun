@@ -1,0 +1,14 @@
+/*
+Write a Sass file that sorts the variable $list_to_sort 
+and prints the sorted list in the debug output.
+*/
+
+// Define the list of names
+$list_to_sort: john anna zoe kim felicia carrie;
+
+// Sort the list
+$sorted_list: sort($list_to_sort);
+
+// Print the sorted list in the debug output
+@debug $sorted_list;
+
