@@ -19,13 +19,17 @@ import os
 
 
 def parse_markdown_to_html(md_content):
-
     """
-    Parses Markdown content to HTML manually for headings.
-    Only supports strict heading syntax (# to ######).
+    Parses Markdown content to HTML manually for headings,
+        unordered lists, and ordered lists.
+    Supports:
+        - Headings (# to ######)
+        - Unordered lists (- Item)
+        - Ordered lists (* Item)
     """
     html_lines = []
-    in_list = False  # Tracks whether we are inside a list
+    in_unordered_list = False  # Tracks whether we are inside an unordered list
+    in_ordered_list = False    # Tracks whether we are inside an ordered list
 
     for line in md_content.splitlines():
         # Handle headings
@@ -41,19 +45,41 @@ def parse_markdown_to_html(md_content):
 
         # Handle unordered lists
         if line.startswith("- "):
-            if not in_list:
+            if in_ordered_list:
+                html_lines.append("</ol>")  # Close any open ordered list
+                in_ordered_list = False
+            if not in_unordered_list:
                 html_lines.append("<ul>")  # Start a new unordered list
-                in_list = True
+                in_unordered_list = True
             list_item = line[2:].strip()  # Remove the "- " prefix
             html_lines.append(f"    <li>{list_item}</li>")
-        else:
-            if in_list:
-                html_lines.append("</ul>")  # Close the unordered list
-                in_list = False
+            continue
+
+        # Handle ordered lists
+        if line.startswith("* "):
+            if in_unordered_list:
+                html_lines.append("</ul>")  # Close any open unordered list
+                in_unordered_list = False
+            if not in_ordered_list:
+                html_lines.append("<ol>")  # Start a new ordered list
+                in_ordered_list = True
+            list_item = line[2:].strip()  # Remove the "* " prefix
+            html_lines.append(f"    <li>{list_item}</li>")
+            continue
+
+        # Handle other lines (non-list, non-heading)
+        if in_unordered_list:
+            html_lines.append("</ul>")  # Close the unordered list
+            in_unordered_list = False
+        if in_ordered_list:
+            html_lines.append("</ol>")  # Close the ordered list
+            in_ordered_list = False
 
     # Close any open list at the end of the document
-    if in_list:
+    if in_unordered_list:
         html_lines.append("</ul>")
+    if in_ordered_list:
+        html_lines.append("</ol>")
 
     return "\n".join(html_lines)
 
