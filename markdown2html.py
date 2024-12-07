@@ -14,25 +14,25 @@ The script uses the `markdown` library to parse the Markdown content
 and generate the corresponding HTML.
 """
 
-import sys  # For accessing command-line arguments and error handling
-import os   # For checking file existence and interacting with the file system
-import markdown  # For converting Markdown content to HTML
+import sys
+import os
+import markdown
 
 if __name__ == "__main__":
     # Check if the correct number of command-line arguments are provided
     if len(sys.argv) < 3:
         print("Usage: ./markdown2html.py README.md README.html",
               file=sys.stderr)
-        sys.exit(1)  # Exit with status 1 to indicate incorrect usage
+        sys.exit(1)
 
     # Assign arguments to variables
-    markdown_file = sys.argv[1]  # First argument: input Markdown file
-    html_file = sys.argv[2]      # Second argument: output HTML file
+    markdown_file = sys.argv[1]
+    html_file = sys.argv[2]
 
     # Check if the specified Markdown file exists
     if not os.path.exists(markdown_file):
         print(f"Missing {markdown_file}", file=sys.stderr)
-        sys.exit(1)  # Exit with status 1 to indicate a missing file
+        sys.exit(1)
 
     try:
         # Read the content of the Markdown file
