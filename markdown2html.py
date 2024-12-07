@@ -16,66 +16,110 @@ and generate the corresponding HTML.
 
 import sys
 import os
+import re
 
 
 def parse_markdown_to_html(md_content):
     """
-    Parses Markdown content to HTML manually for headings,
-        unordered lists, and ordered lists.
-    Supports:
+    Parses Markdown content to HTML manually for:
         - Headings (# to ######)
         - Unordered lists (- Item)
         - Ordered lists (* Item)
+        - Paragraphs
+        - Bold (**Text** → <b>Text</b>)
+        - Emphasis (__Text__ → <em>Text</em>)
     """
     html_lines = []
-    in_unordered_list = False  # Tracks whether we are inside an unordered list
-    in_ordered_list = False    # Tracks whether we are inside an ordered list
+    in_unordered_list = False
+    in_ordered_list = False
+    in_paragraph = False
 
     for line in md_content.splitlines():
+        line = line.strip()
+
         # Handle headings
         if line.startswith("#"):
-            parts = line.split(" ", 1)  # Split into the # part and the text
-            hashes = parts[0]          # The # part
-            if len(hashes) <= 6 and len(parts) == 2:  # Valid heading
+            parts = line.split(" ", 1)
+            hashes = parts[0]
+            if len(hashes) <= 6 and len(parts) == 2:
                 heading_level = len(hashes)
                 heading_text = parts[1].strip()
+                heading_text = re.sub(
+                    r"\*\*(.+?)\*\*", r"<b>\1</b>", heading_text)
+                heading_text = re.sub(
+                    r"__(.+?)__", r"<em>\1</em>", heading_text)
                 html_lines.append(
-                    f"<h{heading_level}>{heading_text}</h{heading_level}>")
+                    f"<h{heading_level}>{heading_text}</h{heading_level}>"
+                )
             continue
 
         # Handle unordered lists
         if line.startswith("- "):
+            if in_paragraph:
+                html_lines.append("</p>")
+                in_paragraph = False
             if in_ordered_list:
-                html_lines.append("</ol>")  # Close any open ordered list
+                html_lines.append("</ol>")
                 in_ordered_list = False
             if not in_unordered_list:
-                html_lines.append("<ul>")  # Start a new unordered list
+                html_lines.append("<ul>")
                 in_unordered_list = True
-            list_item = line[2:].strip()  # Remove the "- " prefix
-            html_lines.append(f"    <li>{list_item}</li>")
+            item_text = line[2:].strip()
+            item_text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", item_text)
+            item_text = re.sub(r"__(.+?)__", r"<em>\1</em>", item_text)
+            html_lines.append(f"    <li>{item_text}</li>")
             continue
 
         # Handle ordered lists
         if line.startswith("* "):
+            if in_paragraph:
+                html_lines.append("</p>")
+                in_paragraph = False
             if in_unordered_list:
-                html_lines.append("</ul>")  # Close any open unordered list
+                html_lines.append("</ul>")
                 in_unordered_list = False
             if not in_ordered_list:
-                html_lines.append("<ol>")  # Start a new ordered list
+                html_lines.append("<ol>")
                 in_ordered_list = True
-            list_item = line[2:].strip()  # Remove the "* " prefix
-            html_lines.append(f"    <li>{list_item}</li>")
+            item_text = line[2:].strip()
+            item_text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", item_text)
+            item_text = re.sub(r"__(.+?)__", r"<em>\1</em>", item_text)
+            html_lines.append(f"    <li>{item_text}</li>")
             continue
 
-        # Handle other lines (non-list, non-heading)
+        # Handle paragraphs
+        if line:  # Non-empty line
+            if in_unordered_list:
+                html_lines.append("</ul>")
+                in_unordered_list = False
+            if in_ordered_list:
+                html_lines.append("</ol>")
+                in_ordered_list = False
+
+            if not in_paragraph:
+                html_lines.append("<p>")
+                in_paragraph = True
+            else:
+                html_lines.append("        <br />")
+            line = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", line)
+            line = re.sub(r"__(.+?)__", r"<em>\1</em>", line)
+            html_lines.append(f"    {line}")
+            continue
+
+        # Empty line (indicates the end of a paragraph or list)
+        if in_paragraph:
+            html_lines.append("</p>")
+            in_paragraph = False
         if in_unordered_list:
-            html_lines.append("</ul>")  # Close the unordered list
+            html_lines.append("</ul>")
             in_unordered_list = False
         if in_ordered_list:
-            html_lines.append("</ol>")  # Close the ordered list
+            html_lines.append("</ol>")
             in_ordered_list = False
 
-    # Close any open list at the end of the document
+    # Close any open list or paragraph at the end of the document
+    if in_paragraph:
+        html_lines.append("</p>")
     if in_unordered_list:
         html_lines.append("</ul>")
     if in_ordered_list:
