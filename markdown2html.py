@@ -25,8 +25,10 @@ def parse_markdown_to_html(md_content):
     Only supports strict heading syntax (# to ######).
     """
     html_lines = []
+    in_list = False  # Tracks whether we are inside a list
+
     for line in md_content.splitlines():
-        # Check if the line starts with '#' and is valid Markdown heading
+        # Handle headings
         if line.startswith("#"):
             parts = line.split(" ", 1)  # Split into the # part and the text
             hashes = parts[0]          # The # part
@@ -35,12 +37,24 @@ def parse_markdown_to_html(md_content):
                 heading_text = parts[1].strip()
                 html_lines.append(
                     f"<h{heading_level}>{heading_text}</h{heading_level}>")
-            else:
-                # Ignore invalid Markdown or add additional handling if needed
-                continue
-        else:
-            # Non-heading lines are ignored for now
             continue
+
+        # Handle unordered lists
+        if line.startswith("- "):
+            if not in_list:
+                html_lines.append("<ul>")  # Start a new unordered list
+                in_list = True
+            list_item = line[2:].strip()  # Remove the "- " prefix
+            html_lines.append(f"    <li>{list_item}</li>")
+        else:
+            if in_list:
+                html_lines.append("</ul>")  # Close the unordered list
+                in_list = False
+
+    # Close any open list at the end of the document
+    if in_list:
+        html_lines.append("</ul>")
+
     return "\n".join(html_lines)
 
 
@@ -71,7 +85,6 @@ if __name__ == "__main__":
         # Write the generated HTML content to the output file
         with open(html_file, 'w', encoding='utf-8') as html_output:
             html_output.write(html_content)
-
 
     except Exception as e:
         # Handle any exceptions that occur during file operations or conversion
