@@ -16,7 +16,33 @@ and generate the corresponding HTML.
 
 import sys
 import os
-import markdown
+
+
+def parse_markdown_to_html(md_content):
+
+    """
+    Parses Markdown content to HTML manually for headings.
+    Only supports strict heading syntax (# to ######).
+    """
+    html_lines = []
+    for line in md_content.splitlines():
+        # Check if the line starts with '#' and is valid Markdown heading
+        if line.startswith("#"):
+            parts = line.split(" ", 1)  # Split into the # part and the text
+            hashes = parts[0]          # The # part
+            if len(hashes) <= 6 and len(parts) == 2:  # Valid heading
+                heading_level = len(hashes)
+                heading_text = parts[1].strip()
+                html_lines.append(
+                    f"<h{heading_level}>{heading_text}</h{heading_level}>")
+            else:
+                # Ignore invalid Markdown or add additional handling if needed
+                continue
+        else:
+            # Non-heading lines are ignored for now
+            continue
+    return "\n".join(html_lines)
+
 
 if __name__ == "__main__":
     # Check if the correct number of command-line arguments are provided
@@ -40,7 +66,7 @@ if __name__ == "__main__":
             md_content = md_file.read()
 
         # Convert the Markdown content to HTML using the `markdown` library
-        html_content = markdown.markdown(md_content)
+        html_content = parse_markdown_to_html(md_content)
 
         # Write the generated HTML content to the output file
         with open(html_file, 'w', encoding='utf-8') as html_output:
