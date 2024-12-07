@@ -19,15 +19,20 @@ import os
 import re
 
 
+def md5_hash(content):
+    """Convert content to MD5 hash in lowercase."""
+    return hashlib.md5(content.encode('utf-8')).hexdigest()
+
+
+def remove_c(content):
+    """Remove all 'c' (case insensitive) from the content."""
+    return re.sub(r"[cC]", "", content)
+
+
 def parse_markdown_to_html(md_content):
     """
-    Parses Markdown content to HTML manually for:
-        - Headings (# to ######)
-        - Unordered lists (- Item)
-        - Ordered lists (* Item)
-        - Paragraphs
-        - Bold (**Text** → <b>Text</b>)
-        - Emphasis (__Text__ → <em>Text</em>)
+    Parses Markdown content to HTML manually, including handling
+    custom syntaxes for MD5 hashing and 'c' removal.
     """
     html_lines = []
     in_unordered_list = False
@@ -37,6 +42,20 @@ def parse_markdown_to_html(md_content):
     for line in md_content.splitlines():
         line = line.strip()
 
+        # Handle custom MD5 syntax: [[Text]]
+        if re.match(r"\[\[.+?\]\]", line):
+            content = re.search(r"\[\[(.+?)\]\]", line).group(1)
+            md5_result = md5_hash(content)
+            html_lines.append(md5_result)
+            continue
+
+        # Handle custom 'c' removal syntax: ((Text))
+        if re.match(r"\(\(.+?\)\)", line):
+            content = re.search(r"\(\((.+?)\)\)", line).group(1)
+            cleaned_result = remove_c(content)
+            html_lines.append(cleaned_result)
+            continue
+
         # Handle headings
         if line.startswith("#"):
             parts = line.split(" ", 1)
@@ -44,65 +63,35 @@ def parse_markdown_to_html(md_content):
             if len(hashes) <= 6 and len(parts) == 2:
                 heading_level = len(hashes)
                 heading_text = parts[1].strip()
-                heading_text = re.sub(
-                    r"\*\*(.+?)\*\*", r"<b>\1</b>", heading_text)
-                heading_text = re.sub(
-                    r"__(.+?)__", r"<em>\1</em>", heading_text)
                 html_lines.append(
-                    f"<h{heading_level}>{heading_text}</h{heading_level}>"
-                )
+                    f"<h{heading_level}>{heading_text}</h{heading_level}>")
             continue
 
         # Handle unordered lists
         if line.startswith("- "):
-            if in_paragraph:
-                html_lines.append("</p>")
-                in_paragraph = False
-            if in_ordered_list:
-                html_lines.append("</ol>")
-                in_ordered_list = False
             if not in_unordered_list:
                 html_lines.append("<ul>")
                 in_unordered_list = True
             item_text = line[2:].strip()
-            item_text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", item_text)
-            item_text = re.sub(r"__(.+?)__", r"<em>\1</em>", item_text)
             html_lines.append(f"    <li>{item_text}</li>")
             continue
 
         # Handle ordered lists
         if line.startswith("* "):
-            if in_paragraph:
-                html_lines.append("</p>")
-                in_paragraph = False
-            if in_unordered_list:
-                html_lines.append("</ul>")
-                in_unordered_list = False
             if not in_ordered_list:
                 html_lines.append("<ol>")
                 in_ordered_list = True
             item_text = line[2:].strip()
-            item_text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", item_text)
-            item_text = re.sub(r"__(.+?)__", r"<em>\1</em>", item_text)
             html_lines.append(f"    <li>{item_text}</li>")
             continue
 
         # Handle paragraphs
         if line:  # Non-empty line
-            if in_unordered_list:
-                html_lines.append("</ul>")
-                in_unordered_list = False
-            if in_ordered_list:
-                html_lines.append("</ol>")
-                in_ordered_list = False
-
             if not in_paragraph:
                 html_lines.append("<p>")
                 in_paragraph = True
             else:
                 html_lines.append("        <br />")
-            line = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", line)
-            line = re.sub(r"__(.+?)__", r"<em>\1</em>", line)
             html_lines.append(f"    {line}")
             continue
 
