@@ -1,9 +1,9 @@
-// Style button tags
+/* Sass file */
+$color-0: #FF0000;
+$color-1: #00FF00;
 button {
-    color: #FF0000; // Set initial text color
-  
-    &:hover {
-      color: #00FF00; // Change text color on hover
-    }
+  color: $color-0;
+  &:hover {
+    color: $color-1;
   }
-  
+}
