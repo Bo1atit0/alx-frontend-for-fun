@@ -1,9 +1,9 @@
-/* Sass file */
-$color-0: #FF0000;
-$color-1: #00FF00;
+/* Nested hover change button color on hover */
+
 button {
-  color: $color-0;
-  &:hover {
-    color: $color-1;
-  }
+    color: #FF0000;
+
+    &:hover {
+        color: #00FF00;
+    }
 }
